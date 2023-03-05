@@ -25,9 +25,9 @@ func TestTimeWheel_AfterFunc(t *testing.T) {
 		t.Run("", func(t *testing.T) {
 			exitC := make(chan time.Time)
 
-			start := time.Now().UTC()
+			start := time.Now().Local()
 			tw.AfterFunc(d, func() {
-				exitC <- time.Now().UTC()
+				exitC <- time.Now().Local()
 			})
 
 			got := (<-exitC).Truncate(time.Millisecond)
@@ -72,9 +72,9 @@ func TestTimingWheel_ScheduleFunc(t *testing.T) {
 
 	exitC := make(chan time.Time, len(s.intervals))
 
-	start := time.Now().UTC()
+	start := time.Now().Local()
 	tw.ScheduleFunc(s, func() {
-		exitC <- time.Now().UTC()
+		exitC <- time.Now().Local()
 	})
 
 	accum := time.Duration(0)
