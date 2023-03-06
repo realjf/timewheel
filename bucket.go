@@ -5,6 +5,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"unsafe"
+
+	"github.com/realjf/spinlock"
 )
 
 type Timer struct {
@@ -35,7 +37,7 @@ func (t *Timer) Stop() bool {
 type bucket struct {
 	expiration int64
 
-	mu     sync.Mutex
+	mu     sync.Locker
 	timers *list.List
 }
 
@@ -43,6 +45,7 @@ func newBucket() *bucket {
 	return &bucket{
 		timers:     list.New(),
 		expiration: -1,
+		mu:         spinlock.NewSpinLock(),
 	}
 }
 
