@@ -85,10 +85,11 @@ func (tw *TimeWheel) add(t *Timer) bool {
 	}
 }
 
+// addOrRun inserts the timer t into the current time wheel, or run the
+// timer's callback if it has already expired.
 func (tw *TimeWheel) addOrRun(t *Timer) {
 	if !tw.add(t) {
 		// Already expired
-
 		go t.callback()
 	}
 }
@@ -135,6 +136,8 @@ func (tw *TimeWheel) Stop() {
 	tw.waitGroup.Wait()
 }
 
+// AfterFunc waits for the duration to elapse and then calls f in its own goroutine.
+// It returns a Timer that can be used to cancel the call using its Stop method.
 func (tw *TimeWheel) AfterFunc(d time.Duration, f func()) *Timer {
 	t := &Timer{
 		expiration: util.TimeToMs(time.Now().Local().Add(d)),
@@ -144,12 +147,17 @@ func (tw *TimeWheel) AfterFunc(d time.Duration, f func()) *Timer {
 	return t
 }
 
+// Scheduler determines the execution plan of a task
+
 type Scheduler interface {
 	Next(time.Time) time.Time
 }
 
+// ScheduleFunc calls f (in its own goroutine) according to the execution
+// plan scheduled by s. It returns a Timer that can be used to cancel the
+// call using its Stop method.
 func (tw *TimeWheel) ScheduleFunc(s Scheduler, f func()) (t *Timer) {
-	expiration := s.Next(time.Now().UTC())
+	expiration := s.Next(time.Now().Local())
 	if expiration.IsZero() {
 		// No time is scheduled, return nil.
 		return
